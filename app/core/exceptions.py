@@ -9,7 +9,7 @@ def custom_http_exception_handler(request: Request, ex: HTTPException):
         content={
             "success": False,
             "status_code": ex.status_code,
-            "message": ex.detail  
+            "detail": ex.detail  
         }
     )
 
@@ -20,7 +20,7 @@ def validation_exception_handler(request: Request, ex: RequestValidationError):
         content={
             "success": False,
             "status_code": 422,
-            "message": "Dữ liệu đầu vào không hợp lệ!", 
+            "detail": "Dữ liệu đầu vào không hợp lệ!", 
             "errors": ex.errors()
         }
     )
@@ -32,6 +32,6 @@ def global_exception_handler(request: Request, ex: Exception):
         content={
             "success": False,
             "status_code": 500,
-            "message": "Lỗi hệ thống nội bộ (Internal Server Error)!" 
+            "detail": "Lỗi hệ thống nội bộ (Internal Server Error)!" 
         }
     )

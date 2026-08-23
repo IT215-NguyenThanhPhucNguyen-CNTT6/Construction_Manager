@@ -1,36 +1,46 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
+from jose import JWTError, jwt, ExpiredSignatureError
 from sqlalchemy.orm import Session
+
 from app.db.database import get_db
 from app.models.user import User
-from app.core.security import decode_access_token
+from app.core.config import settings
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
-# Dependency đọc user từ JWT Bearer token
-def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> User:
+def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Token không hợp lệ hoặc đã hết hạn!",
+        detail="Token không hợp lệ!",
         headers={"WWW-Authenticate": "Bearer"},
     )
     
-    payload = decode_access_token(token)
-    if payload is None:
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            raise credentials_exception
+    except ExpiredSignatureError:
+        # Bắt riêng lỗi Token hết hạn
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token đã hết hạn, vui lòng đăng nhập lại!",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    except JWTError:
+        # Bắt lỗi Token sai định dạng / bị mod
         raise credentials_exception
-    user_id: str = payload.get("sub")
-    if user_id is None:
-        raise credentials_exception
-    user = db.query(User).filter(User.id == int(user_id)).first()
+
+    user = db.query(User).filter(User.email == email).first()
     if user is None:
         raise credentials_exception
-    return user
 
-# Role guard kiểm tra quyền ADMIN
-def require_admin(current_user: User = Depends(get_current_user)) -> User:
-    if current_user.role != "ADMIN":
+    # Xử lý lỗi Tài khoản bị khóa (HTTP 403 Forbidden)
+    if not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Bạn không có quyền thực hiện thao tác này!"
+            detail="Tài khoản của bạn đã bị khóa hoặc ngừng hoạt động!"
         )
-    return current_user
+
+    return user

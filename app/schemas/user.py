@@ -1,9 +1,9 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 from datetime import datetime
 
 # Base schema chứa các trường chung
 class UserBase(BaseModel):
-    email: EmailStr
+    email: str
     username: str
     full_name: str | None = None
 
@@ -13,7 +13,7 @@ class UserCreate(UserBase):
 
 # Input khi Đăng nhập
 class UserLogin(BaseModel):
-    email: EmailStr
+    email: str
     password: str
 
 # Output trả về thông tin User (ẩn password)

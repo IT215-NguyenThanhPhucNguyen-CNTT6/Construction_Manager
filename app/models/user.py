@@ -12,6 +12,7 @@ class User(Base):
     full_name = Column(String(100), nullable=True)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    role = Column(String(20), default="USER")
 
     # mqh
     created_sites = relationship("ConstructionSite", back_populates="creator")

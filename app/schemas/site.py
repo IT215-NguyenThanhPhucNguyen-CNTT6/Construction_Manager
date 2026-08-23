@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from datetime import datetime
 from app.schemas.user import UserResponse
 
-# Base Schema cho Công trình
+# BaseSchema cho công trình
 class SiteBase(BaseModel):
     name: str
     code: str

@@ -15,7 +15,6 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         detail="Token không hợp lệ!",
         headers={"WWW-Authenticate": "Bearer"},
     )
-    
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         email: str = payload.get("sub")
@@ -29,7 +28,7 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
             headers={"WWW-Authenticate": "Bearer"},
         )
     except JWTError:
-        # Bắt lỗi Token sai định dạng / bị mod
+        # Bắt lỗi Token sai định dạng 
         raise credentials_exception
 
     user = db.query(User).filter(User.email == email).first()
@@ -42,5 +41,13 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Tài khoản của bạn đã bị khóa hoặc ngừng hoạt động!"
         )
-
     return user
+
+def require_admin(current_user: User = Depends(get_current_user)):
+    # Kiểm tra nếu role không phải ADMIN
+    if getattr(current_user, "role", None) != "ADMIN":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Bạn không có quyền thực hiện chức năng này! Chỉ ADMIN mới có quyền."
+        )
+    return current_user

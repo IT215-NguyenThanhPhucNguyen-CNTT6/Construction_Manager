@@ -1,44 +1,45 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+from typing import Optional, List
 from datetime import datetime
-from app.schemas.user import UserResponse
 
-# BaseSchema cho công trình
-class SiteBase(BaseModel):
-    name: str
-    code: str
-    address: str | None = None
-    description: str | None = None
+# Schema Tạo công trình
+class SiteCreate(BaseModel):
+    name: str = Field(..., min_length=1, max_length=150)
+    code: str = Field(..., min_length=1, max_length=50)
+    address: Optional[str] = Field(None, max_length=255)
+    description: Optional[str] = None
 
-# Input khi tạo mới công trình
-class SiteCreate(SiteBase):
-    pass
-
-# Input khi cập nhật thông tin công trình
+# Schema Cập nhật công trình
 class SiteUpdate(BaseModel):
-    name: str | None = None
-    address: str | None = None
-    description: str | None = None
+    name: Optional[str] = Field(None, min_length=1, max_length=150)
+    address: Optional[str] = Field(None, max_length=255)
+    description: Optional[str] = None
 
-# Output thông tin công trình
-class SiteResponse(SiteBase):
-    id: int
-    created_at: datetime
+# Schema Thêm thành viên
+class SiteMemberAdd(BaseModel):
+    user_id: int
+    role: str = Field("MEMBER", description="OWNER, MANAGER, SUPERVISOR, MEMBER")
+
+# Schema Trả về thông tin Thành viên
+class SiteMemberResponse(BaseModel):
+    user_id: int
+    email: str
+    full_name: Optional[str] = None
+    role: str
+    joined_at: datetime
 
     class Config:
         from_attributes = True
 
-# Input khi thêm thành viên vào công trình
-class SiteMemberAdd(BaseModel):
-    user_id: int
-    role: str = "member"  # manager, supervisor, member
-
-# Output thông tin thành viên công trình
-class SiteMemberResponse(BaseModel):
+# Schema Trả về thông tin Công trình
+class SiteResponse(BaseModel):
     id: int
-    site_id: int
-    role: str
-    joined_at: datetime
-    user: UserResponse | None = None
+    name: str
+    code: str
+    address: Optional[str]
+    description: Optional[str]
+    created_by: int
+    created_at: datetime
 
     class Config:
         from_attributes = True

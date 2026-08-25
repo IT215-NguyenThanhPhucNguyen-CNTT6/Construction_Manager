@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text
 from app.db.database import Base, engine, get_db
 from app.core.exceptions import (custom_http_exception_handler, validation_exception_handler, global_exception_handler)
-from app.routers import auth, user
+from app.routers import auth, user, site
 
 app = FastAPI(title="Quản lý công trình")
 
@@ -13,6 +13,7 @@ app.add_exception_handler(RequestValidationError, validation_exception_handler)
 app.add_exception_handler(Exception, global_exception_handler)
 app.include_router(auth.router)
 app.include_router(user.router)
+app.include_router(site.router)
 
 Base.metadata.create_all(bind=engine)
 

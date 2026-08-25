@@ -1,4 +1,3 @@
-import traceback
 from fastapi import Request, HTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
@@ -26,17 +25,13 @@ def validation_exception_handler(request: Request, ex: RequestValidationError):
         }
     )
 
-# 3. Bắt lỗi Server nội bộ (500) - Đã thêm in Traceback ra Terminal
+# 3. Bắt lỗi Server nội bộ (500)
 def global_exception_handler(request: Request, ex: Exception):
-    print("\n" + "="*20 + " LỖI SERVER CHI TIẾT " + "="*20)
-    traceback.print_exc()
-    print("="*61 + "\n")
-
     return JSONResponse(
         status_code=500,
         content={
             "success": False,
             "status_code": 500,
-            "detail": str(ex)  # Trả về nguyên nhân lỗi trực tiếp ra màn hình
+            "detail": str(ex) 
         }
     )
